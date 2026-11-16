@@ -6,6 +6,7 @@ services:
     runtime: node
     rootDir: backend
     plan: free
+    autoDeploy: false # quem faz o deploy é o GitHub Actions (deploy hook)
     region: virginia
     buildCommand: npm ci && npm run build
     startCommand: npm start
