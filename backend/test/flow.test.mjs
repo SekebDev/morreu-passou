@@ -196,3 +196,33 @@ test('fila: quem chega no meio entra antes de quem já jogou', async () => {
     srv.kill();
   }
 });
+
+test('fila: menos vezes e estatísticas do ranking', async () => {
+  const { srv, mk } = await server(3995);
+  try {
+    const { ps, play, state, cur } = await party(mk, 3, 'menos-vezes');
+    const x = await play(300);
+    const y = await play(50);
+    // dono pula z ainda no preparo: conta como vez, mas não como morte
+    const z = cur().id_;
+    await emit2(ps[0], 'turn:died');
+    await wait(40);
+    // todo mundo com 1 vez: desempata por menos tempo; z acabou de passar, então vai y
+    assert.deepEqual(state().queue, [y, z, x]);
+    const s = state().stats;
+    assert.equal(s[z].turns, 1);
+    assert.equal(s[z].deaths, 0);
+    assert.equal(s[x].deaths, 1);
+    assert.ok(s[y].fastestDeathMs < s[x].fastestDeathMs);
+    assert.ok(s[x].playedMs >= 300);
+    await play(20);
+    // stats continuam depois de encerrar, pro ranking
+    await emit2(ps[0], 'party:end');
+    await wait(40);
+    assert.equal(state().status, 'lobby');
+    assert.equal(state().stats[x].name.startsWith('P'), true);
+  } finally {
+    sockets.forEach((s) => s.disconnect());
+    srv.kill();
+  }
+});

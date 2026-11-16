@@ -5,6 +5,7 @@ import { minutesLabel } from '@/lib/format';
 import { emit } from '@/lib/socket';
 import { QUEUE_MODES, TURN_MAX, TURN_MIN, TURN_OPTIONS, type RoomState } from '@/lib/types';
 import { Icon } from './Icon';
+import { Ranking } from './Ranking';
 
 export function Lobby({ room, me, onError }: { room: RoomState; me: string; onError: (m: string) => void }) {
   const isOwner = room.ownerId === me;
@@ -73,6 +74,8 @@ export function Lobby({ room, me, onError }: { room: RoomState; me: string; onEr
         </ul>
         {!enough && <p className="mt-3 text-xl text-muted">Precisa de pelo menos mais uma pessoa pra começar.</p>}
       </section>
+
+      <Ranking room={room} />
 
       <TurnTime room={room} isOwner={isOwner} ownerName={owner?.name} act={act} />
       <QueueMode room={room} isOwner={isOwner} ownerName={owner?.name} act={act} />
@@ -193,7 +196,7 @@ function QueueMode({ room, isOwner, ownerName, act }: ConfigProps) {
   return (
     <section className="box p-4">
       <h2 className="eyebrow font-display mb-3 text-[calc(11px*var(--dz))] uppercase">Estilo da fila</h2>
-      <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Estilo da fila">
+      <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Estilo da fila">
         {QUEUE_MODES.map((m) => {
           const active = room.queueMode === m.mode;
           return (

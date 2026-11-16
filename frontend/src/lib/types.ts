@@ -21,18 +21,27 @@ export interface RoomState {
   phaseStartedAt: number | null;
   phaseEndsAt: number | null;
   round: number;
-  stats: Record<string, { playedMs: number; turns: number }>;
+  stats: Record<string, PlayerStats>;
   lastEvent: string | null;
   serverNow: number;
 }
 
 export type Ack = { ok: true; code?: string } | { ok: false; error: string };
 
-export type QueueMode = 'rodizio' | 'menos-tempo' | 'sorteio';
+export interface PlayerStats {
+  name: string;
+  playedMs: number;
+  turns: number;
+  deaths: number;
+  fastestDeathMs: number | null;
+}
+
+export type QueueMode = 'rodizio' | 'menos-tempo' | 'menos-vezes' | 'sorteio';
 
 export const QUEUE_MODES: { mode: QueueMode; label: string; hint: string }[] = [
   { mode: 'rodizio', label: 'Rodízio', hint: 'Ordem sorteada no começo. Morreu, vai pro fim da fila.' },
   { mode: 'menos-tempo', label: 'Quem jogou menos', hint: 'Quem tem menos tempo de jogo no total vai na frente.' },
+  { mode: 'menos-vezes', label: 'Quem jogou menos vezes', hint: 'Quem teve a vez menos vezes vai na frente. Empatou, vai quem jogou menos tempo.' },
   { mode: 'sorteio', label: 'Sorteio por rodada', hint: 'Todo mundo joga uma vez por rodada, numa ordem nova a cada rodada.' },
 ];
 

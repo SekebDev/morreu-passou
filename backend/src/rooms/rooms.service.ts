@@ -129,8 +129,8 @@ export class RoomsService implements OnModuleDestroy {
     if (!QUEUE_MODES.includes(mode as QueueMode)) throw new RoomError('Estilo de fila inválido.');
     room.queueMode = mode as QueueMode;
     // Com a party rolando, quem joga agora continua; só a previsão do resto muda.
-    if (room.status === 'playing' && room.queueMode === 'menos-tempo') {
-      room.queue = [room.queue[0], ...this.byLeastTime(room, room.queue.slice(1))];
+    if (room.status === 'playing' && this.isLeastMode(room)) {
+      room.queue = [room.queue[0], ...this.byLeast(room, room.queue.slice(1))];
     }
     this.touch(room);
   }
@@ -145,7 +145,7 @@ export class RoomsService implements OnModuleDestroy {
     room.turn = 0;
     room.round = 1;
     room.playedThisRound = new Set();
-    room.stats = Object.fromEntries(room.players.map((p) => [p.id, { playedMs: 0, turns: 0 }]));
+    room.stats = Object.fromEntries(room.players.map((p) => [p.id, this.newStats(p.name)]));
     room.lastEvent = 'Fila sorteada!';
     this.enterPrep(room);
   }
@@ -164,6 +164,7 @@ export class RoomsService implements OnModuleDestroy {
     const isCurrent = room.queue[0] === by;
     if (!isCurrent && room.ownerId !== by) throw new RoomError('Não é a sua vez.');
     const who = this.nameOf(room, room.queue[0]);
+    if (isCurrent) this.countDeath(room, by);
     this.advance(room, isCurrent ? `${who} morreu` : `${who} foi pulado`);
   }
 
@@ -230,13 +231,28 @@ export class RoomsService implements OnModuleDestroy {
     this.enterPrep(room);
   }
 
+  private newStats(name: string, catchUpMs = 0, catchUpTurns = 0) {
+    return { name, playedMs: 0, turns: 0, deaths: 0, fastestDeathMs: null, catchUpMs, catchUpTurns };
+  }
+
+  private statsOf(room: Room, id: string) {
+    return (room.stats[id] ??= this.newStats(this.nameOf(room, id)));
+  }
+
+  /** Morte só conta se a pessoa estava jogando (no preparo ela só passou a vez). */
+  private countDeath(room: Room, id: string) {
+    if (room.phase !== 'playing' || !room.phaseStartedAt) return;
+    const st = this.statsOf(room, id);
+    const ms = Date.now() - room.phaseStartedAt;
+    st.deaths += 1;
+    st.fastestDeathMs = st.fastestDeathMs === null ? ms : Math.min(st.fastestDeathMs, ms);
+  }
+
   /** Soma o tempo jogado e marca que a pessoa já teve a vez nesta rodada. */
   private closeTurn(room: Room, id: string) {
-    const st = (room.stats[id] ??= { playedMs: 0, turns: 0 });
-    if (room.phase === 'playing' && room.phaseStartedAt) {
-      st.playedMs += Date.now() - room.phaseStartedAt;
-      st.turns += 1;
-    }
+    const st = this.statsOf(room, id);
+    if (room.phase === 'playing' && room.phaseStartedAt) st.playedMs += Date.now() - room.phaseStartedAt;
+    st.turns += 1;
     room.playedThisRound.add(id);
   }
 
@@ -252,9 +268,10 @@ export class RoomsService implements OnModuleDestroy {
   private nextOrder(room: Room, done: string, rest: string[], newRound: boolean): string[] {
     if (rest.length === 0) return [done];
     switch (room.queueMode) {
-      case 'menos-tempo': {
-        const [next, ...others] = this.byLeastTime(room, rest);
-        return [next, ...this.byLeastTime(room, [...others, done])];
+      case 'menos-tempo':
+      case 'menos-vezes': {
+        const [next, ...others] = this.byLeast(room, rest);
+        return [next, ...this.byLeast(room, [...others, done])];
       }
       case 'sorteio': {
         if (!newRound) return [...rest, done];
@@ -267,23 +284,45 @@ export class RoomsService implements OnModuleDestroy {
     }
   }
 
-  /** Ordena por menos tempo jogado; empate vai pra quem jogou menos vezes, depois mantém a ordem. */
-  private byLeastTime(room: Room, ids: string[]): string[] {
-    const st = (id: string) => room.stats[id] ?? { playedMs: 0, turns: 0 };
+  /**
+   * Ordena pelo critério do modo: no "menos tempo", menos tempo jogado (empate: menos vezes);
+   * no "menos vezes", menos vezes (empate: menos tempo). Empate total mantém a ordem.
+   */
+  private byLeast(room: Room, ids: string[]): string[] {
+    const st = (id: string) => room.stats[id] ?? this.newStats('');
+    const ms = (id: string) => st(id).playedMs + st(id).catchUpMs;
+    const n = (id: string) => st(id).turns + st(id).catchUpTurns;
+    const time = (a: string, b: string) => ms(a) - ms(b);
+    const turns = (a: string, b: string) => n(a) - n(b);
+    const [first, second] = room.queueMode === 'menos-vezes' ? [turns, time] : [time, turns];
     return ids
       .map((id, i) => ({ id, i }))
-      .sort((a, b) => st(a.id).playedMs - st(b.id).playedMs || st(a.id).turns - st(b.id).turns || a.i - b.i)
+      .sort((a, b) => first(a.id, b.id) || second(a.id, b.id) || a.i - b.i)
       .map((x) => x.id);
+  }
+
+  private isLeastMode(room: Room) {
+    return room.queueMode === 'menos-tempo' || room.queueMode === 'menos-vezes';
   }
 
   /** Quem chega com a party rolando entra antes de quem já jogou nesta rodada. */
   private addToQueue(room: Room, id: string) {
     if (room.queue.includes(id)) return;
-    // No "menos tempo", começa empatado com quem jogou menos, pra não furar a fila por horas.
-    const minMs = Math.min(...room.queue.map((q) => room.stats[q]?.playedMs ?? 0));
-    room.stats[id] ??= { playedMs: Number.isFinite(minMs) ? minMs : 0, turns: 0 };
-    if (room.queueMode === 'menos-tempo') {
-      room.queue = [room.queue[0], ...this.byLeastTime(room, [...room.queue.slice(1), id])];
+    // Nos modos "menos", começa empatado com quem jogou menos, pra não furar a fila por horas.
+    // (Isso só afeta a ordem: o ranking usa só o que a pessoa jogou de verdade.)
+    const min = (f: (q: string) => number) => {
+      const v = Math.min(...room.queue.map(f));
+      return Number.isFinite(v) ? v : 0;
+    };
+    if (!room.stats[id]) {
+      room.stats[id] = this.newStats(
+        this.nameOf(room, id),
+        min((q) => (room.stats[q] ? room.stats[q].playedMs + room.stats[q].catchUpMs : 0)),
+        min((q) => (room.stats[q] ? room.stats[q].turns + room.stats[q].catchUpTurns : 0)),
+      );
+    }
+    if (this.isLeastMode(room)) {
+      room.queue = [room.queue[0], ...this.byLeast(room, [...room.queue.slice(1), id])];
       return;
     }
     const firstPlayed = room.queue.findIndex((q, i) => i > 0 && room.playedThisRound.has(q));
