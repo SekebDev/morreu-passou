@@ -11,9 +11,10 @@ export type Phase = 'idle' | 'prep' | 'playing';
  * Como a fila anda:
  * - rodizio: ordem sorteada no começo e mantida (primeiro a entrar, primeiro a jogar).
  * - menos-tempo: quem jogou menos tempo no total vai na frente.
+ * - menos-vezes: quem teve a vez menos vezes vai na frente.
  * - sorteio: a ordem é sorteada de novo a cada rodada.
  */
-export const QUEUE_MODES = ['rodizio', 'menos-tempo', 'sorteio'] as const;
+export const QUEUE_MODES = ['rodizio', 'menos-tempo', 'menos-vezes', 'sorteio'] as const;
 export type QueueMode = (typeof QUEUE_MODES)[number];
 
 export interface Player {
@@ -23,9 +24,19 @@ export interface Player {
 }
 
 export interface PlayerStats {
+  /** Guardado aqui pro ranking ainda mostrar quem saiu da sala. */
+  name: string;
   /** Tempo jogando de verdade (fase "playing"), em ms. */
   playedMs: number;
+  /** Quantas vezes teve a vez (inclusive quando foi pulado). */
   turns: number;
+  /** Quantas vezes apertou "Morri" jogando. */
+  deaths: number;
+  /** Turno mais curto que terminou em morte, em ms. */
+  fastestDeathMs: number | null;
+  /** Quem chega no meio começa com esse "crédito" só pra ordem da fila (não entra no ranking). */
+  catchUpMs: number;
+  catchUpTurns: number;
 }
 
 export interface Room {

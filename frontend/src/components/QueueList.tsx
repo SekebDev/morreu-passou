@@ -34,6 +34,11 @@ export function QueueList({ room, me }: { room: RoomState; me: string }) {
                   {played(room.stats[id]?.playedMs ?? 0)}
                 </span>
               )}
+              {room.queueMode === 'menos-vezes' && (
+                <span className="text-lg tabular-nums text-muted" title="vezes que jogou">
+                  {room.stats[id]?.turns ?? 0}x
+                </span>
+              )}
               {id === room.ownerId && <Icon name="crown" size={2} title="dono da sala" />}
               {!p.connected && <span className="text-lg text-muted">offline</span>}
             </li>

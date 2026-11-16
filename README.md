@@ -13,10 +13,14 @@ O dono escolhe o tempo de cada vez (atalhos de 10, 20, 30 min e 1 hora, ou **Out
 |---|---|
 | Rodízio | ordem sorteada no começo; morreu, vai pro fim da fila |
 | Quem jogou menos | quem tem menos tempo de jogo somado vai na frente (ninguém joga duas seguidas) |
+| Quem jogou menos vezes | quem teve a vez menos vezes vai na frente; empate vai pra quem jogou menos tempo |
 | Sorteio por rodada | todo mundo joga uma vez por rodada, numa ordem nova a cada rodada |
 
 Quem entra com a party rolando joga antes de quem já jogou na rodada. No "quem jogou menos", começa
 empatado com quem jogou menos tempo, pra não passar horas na frente de todo mundo.
+
+Quando a party acaba, o lobby mostra o ranking: quem jogou mais tempo, quem morreu mais e a morte
+mais rápida. Só conta como morte apertar **Morri** com o timer rodando (ser pulado não conta).
 
 ## Temas
 
