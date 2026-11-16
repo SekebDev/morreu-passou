@@ -92,6 +92,23 @@ depois de alguns minutos, aí jogadores da mesma sala cairiam em memórias difer
 No plano grátis do Render o backend dorme depois de 15 minutos sem ninguém conectado e leva uns 50
 segundos pra acordar na primeira visita.
 
+### Deploy automático (GitHub Actions)
+
+`.github/workflows/deploy.yml` roda em todo PR e push: build e teste do backend, checagem de tipos e
+build do frontend. Num push na `main`, se tudo passar, ele dispara o deploy do backend no Render e
+publica o frontend na Vercel. O deploy automático nativo dos dois fica desligado
+(`autoDeploy: false` no `render.yaml`, `git.deploymentEnabled: false` em `frontend/vercel.json`),
+assim nada sobe com teste quebrado e não tem deploy duplo.
+
+Secrets do repositório (Settings > Secrets and variables > Actions):
+
+| Secret | De onde vem |
+| --- | --- |
+| `RENDER_DEPLOY_HOOK_URL` | Render > serviço do backend > Settings > Deploy Hook |
+| `VERCEL_TOKEN` | Vercel > Account Settings > Tokens |
+| `VERCEL_ORG_ID` | ID do time na Vercel (`team_...`) |
+| `VERCEL_PROJECT_ID` | Vercel > projeto > Settings > General > Project ID |
+
 ## Variáveis de ambiente
 
 | Variável | Onde | Padrão | Pra quê |
