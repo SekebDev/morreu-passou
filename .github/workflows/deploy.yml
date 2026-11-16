@@ -57,7 +57,9 @@ jobs:
           HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
           if [ -z "$HOOK" ]; then echo "::error::Secret RENDER_DEPLOY_HOOK_URL não configurado"; exit 1; fi
-          curl -fsS -X POST "$HOOK?ref=${GITHUB_SHA}"
+          # A URL do hook já vem com ?key=..., então o commit entra com &.
+          case "$HOOK" in *\?*) SEP='&' ;; *) SEP='?' ;; esac
+          curl -fsS -X POST "${HOOK}${SEP}ref=${GITHUB_SHA}"
 
   deploy-frontend:
     name: Deploy frontend (Vercel)
@@ -68,6 +70,8 @@ jobs:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      # Garante o endereço do backend no build mesmo se a variável não estiver no painel da Vercel.
+      NEXT_PUBLIC_SERVER_URL: https://morreu-passou-backend.onrender.com
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
