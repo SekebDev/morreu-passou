@@ -19,10 +19,10 @@ export function Logo({ small = false }: { small?: boolean }) {
 
   if (theme.id === 'vice') {
     return (
-      <div className="flex flex-col items-center text-center select-none">
+      <div className="flex flex-col items-start select-none">
         <h1 className="vice-logo">
           <span className="vice-logo-top">Morreu,</span>
-          <span className="vice-logo-script">Passou</span>
+          <span className="vice-logo-big">Passou</span>
         </h1>
       </div>
     );

@@ -61,9 +61,9 @@ export function Party({ room, me, serverNow, onError }: Props) {
 function GetReady({ left, total, onStart }: { left: number; total: number; onStart: () => void }) {
   return (
     <section className="flex flex-col items-center gap-5 text-center">
-      <p className="font-display bob text-[calc(22px*var(--dz))] leading-snug text-danger">Sua vez!</p>
+      <p className="section-title font-display bob text-[calc(22px*var(--dz))] leading-snug text-danger">Sua vez!</p>
       <p className="text-3xl">Pega o controle. O tempo começa sozinho em</p>
-      <p className="font-display text-[calc(56px*var(--dz))] leading-none" aria-live="off">
+      <p className="timer-num font-display text-[calc(56px*var(--dz))] leading-none" aria-live="off">
         {Math.max(0, Math.ceil(left / 1000))}
       </p>
       <div className="w-full">
@@ -89,8 +89,8 @@ function Playing({ left, total, onDied }: { left: number; total: number; onDied:
 
   return (
     <section className="flex flex-col items-center gap-5 text-center">
-      <p className="font-display text-[calc(12px*var(--dz))] uppercase text-muted">Você está jogando</p>
-      <p className={`font-display text-[calc(54px*var(--dz))] leading-none tabular-nums ${low ? 'text-danger' : ''} ${critical ? 'blink' : ''}`} role="timer" aria-live="off">
+      <p className="eyebrow font-display text-[calc(12px*var(--dz))] uppercase text-muted">Você está jogando</p>
+      <p className={`timer-num font-display text-[calc(54px*var(--dz))] leading-none tabular-nums ${low ? 'text-danger' : ''} ${critical ? 'blink' : ''}`} role="timer" aria-live="off">
         {clock(left)}
       </p>
       <div className="w-full">
@@ -116,7 +116,7 @@ function Waiting({ room, me, left }: { room: RoomState; me: string; left: number
   return (
     <section className="box flex flex-col items-center gap-3 p-5 text-center">
       <Icon name="hourglass" size={6} className="bob" />
-      <p className="font-display text-[calc(14px*var(--dz))] leading-relaxed">Espere a sua vez</p>
+      <p className="section-title font-display text-[calc(14px*var(--dz))] leading-relaxed">Espere a sua vez</p>
       <p className="text-3xl">
         Agora é <strong className="text-danger">{current?.name ?? '…'}</strong>
         {room.phase === 'prep' ? ' pegando o controle' : ' jogando'}
@@ -137,7 +137,7 @@ function OwnerTools({ room, me, act }: { room: RoomState; me: string; act: (e: s
   const someoneElse = room.queue[room.current] !== me;
   return (
     <details className="box p-4 box-sunk">
-      <summary className="font-display flex cursor-pointer items-center gap-2 text-[calc(11px*var(--dz))] uppercase">
+      <summary className="eyebrow font-display flex cursor-pointer items-center gap-2 text-[calc(11px*var(--dz))] uppercase">
         <Icon name="crown" size={2} /> Controles do dono
       </summary>
       <div className="mt-4 flex flex-col gap-2">

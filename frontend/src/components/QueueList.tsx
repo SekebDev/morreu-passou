@@ -7,7 +7,7 @@ export function QueueList({ room, me }: { room: RoomState; me: string }) {
   const order = room.queue.map((_, i) => room.queue[(room.current + i) % room.queue.length]);
   return (
     <section className="box p-4">
-      <h2 className="font-display mb-3 flex items-center justify-between text-[calc(11px*var(--dz))] uppercase">
+      <h2 className="eyebrow font-display mb-3 flex items-center justify-between text-[calc(11px*var(--dz))] uppercase">
         <span>Fila</span>
         <span className="text-muted">rodada {room.round}</span>
       </h2>
