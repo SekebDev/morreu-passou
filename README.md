@@ -6,6 +6,21 @@ Quando a party começa, a fila é sorteada. Quem está na vez vê o timer e o bo
 quem está jogando e quanto falta. Morreu ou acabou o tempo, o próximo tem 30 segundos pra pegar o
 controle (ou aperta **Começar agora**) e o timer dele começa.
 
+## Temas
+
+Cada pessoa escolhe o tema no próprio celular (botão **Tema**, no topo). Fica salvo no navegador.
+
+| Tema | Inspiração | Marca registrada |
+| --- | --- | --- |
+| Cartucho | 8 bits, manual de cartucho | barra de vida em blocos, GAME OVER |
+| Vice | pôr do sol na Flórida, estilo GTA 6 | céu degradê com palmeiras, tempo em estrelas, JÁ ERA em preto e branco |
+| Cinzas | soulslike, fogueira e castelo | brasas subindo, fio dourado, VOCÊ MORREU |
+| Neon | cidade cyberpunk | cantos cortados, segmentos inclinados, FLATLINE com glitch |
+
+Os temas são inspirados na estética desses jogos, sem usar logos, fontes ou arte oficiais.
+Pra criar um tema novo: adicione em `frontend/src/lib/themes.ts`, crie o bloco de tokens
+`[data-theme='seu-tema']` em `globals.css` e, se quiser, um cenário em `Backdrop.tsx`.
+
 ## Stack
 
 | Parte | O quê |

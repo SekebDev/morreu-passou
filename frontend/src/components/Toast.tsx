@@ -15,7 +15,7 @@ export function Toast({ message, stamp }: { message: string | null; stamp: numbe
   if (!shown) return null;
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-[max(16px,env(safe-area-inset-bottom))]" aria-live="polite">
-      <div className="px-box drop-in max-w-md px-4 py-2 text-center text-2xl [--box-bg:#231a1c] text-paper">{shown}</div>
+      <div className="box drop-in max-w-md px-4 py-2 text-center text-2xl box-dark">{shown}</div>
     </div>
   );
 }
