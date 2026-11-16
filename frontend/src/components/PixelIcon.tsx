@@ -61,6 +61,17 @@ const ICONS = {
     'kkkkkkk',
   ],
   arrow: ['kk...', 'kgk..', 'kggk.', 'kgggk', 'kggk.', 'kgk..', 'kk...'],
+  palette: [
+    '..kkkkk..',
+    '.kwwwwwk.',
+    'kwrwwgwwk',
+    'kwwwwwwmk',
+    'kwbwwkkwk',
+    'kwwwk..k.',
+    '.kwwk....',
+    '..kk.....',
+  ],
+  star: ['....k....', '...kgk...', 'kkkkgkkkk', 'kgggggggk', '.kgggggk.', '.kggkggk.', 'kgk...kgk', 'kk.....kk'],
   door: [
     'kkkkkk',
     'kooook',

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { emit } from '@/lib/socket';
 import { TURN_OPTIONS, type RoomState } from '@/lib/types';
-import { PixelIcon } from './PixelIcon';
+import { Icon } from './Icon';
 
 export function Lobby({ room, me, onError }: { room: RoomState; me: string; onError: (m: string) => void }) {
   const isOwner = room.ownerId === me;
@@ -34,33 +34,33 @@ export function Lobby({ room, me, onError }: { room: RoomState; me: string; onEr
 
   return (
     <div className="flex flex-col gap-6">
-      <section className="px-box flex flex-col items-center gap-2 p-5 text-center">
-        <span className="font-pixel text-[11px] uppercase text-ink-2">Código da sala</span>
-        <span className="font-pixel text-[44px] leading-none tracking-[0.18em] text-blood" aria-label={`Código ${room.code.split('').join(' ')}`}>
+      <section className="box flex flex-col items-center gap-2 p-5 text-center">
+        <span className="font-display text-[calc(11px*var(--dz))] uppercase text-muted">Código da sala</span>
+        <span className="font-display text-[calc(44px*var(--dz))] leading-none tracking-[0.18em] text-danger" aria-label={`Código ${room.code.split('').join(' ')}`}>
           {room.code}
         </span>
-        <button className="px-btn ghost mt-2 text-[11px]" onClick={share}>
+        <button className="px-btn ghost mt-2 text-[calc(11px*var(--dz))]" onClick={share}>
           {copied ? 'Link copiado!' : 'Chamar a galera'}
         </button>
       </section>
 
-      <section className="px-box p-4">
-        <h2 className="font-pixel mb-3 flex justify-between text-[11px] uppercase">
+      <section className="box p-4">
+        <h2 className="font-display mb-3 flex justify-between text-[calc(11px*var(--dz))] uppercase">
           <span>Na sala</span>
-          <span className="text-ink-2">{room.players.length}/16</span>
+          <span className="text-muted">{room.players.length}/16</span>
         </h2>
         <ul className="flex flex-col gap-1">
           {room.players.map((p) => (
             <li key={p.id} className={`flex items-center gap-3 px-2 py-1 text-2xl ${p.connected ? '' : 'opacity-50'}`}>
-              <span className={`h-3 w-3 ${p.connected ? 'bg-moss' : 'bg-ink-2/40'}`} aria-hidden />
+              <span className={`h-3 w-3 ${p.connected ? 'bg-ok' : 'bg-muted/40'}`} aria-hidden />
               <span className="flex-1 truncate">
                 {p.name}
-                {p.id === me && <span className="text-ink-2"> (você)</span>}
+                {p.id === me && <span className="text-muted"> (você)</span>}
               </span>
-              {p.id === room.ownerId && <PixelIcon name="crown" size={2} title="dono da sala" />}
+              {p.id === room.ownerId && <Icon name="crown" size={2} title="dono da sala" />}
               {isOwner && p.id !== me && (
                 <button
-                  className="font-pixel px-2 text-[10px] text-blood underline decoration-2 underline-offset-4"
+                  className="font-display px-2 text-[calc(10px*var(--dz))] text-danger underline decoration-2 underline-offset-4"
                   onClick={() => act('room:kick', { playerId: p.id })}
                   aria-label={`Remover ${p.name}`}
                 >
@@ -70,11 +70,11 @@ export function Lobby({ room, me, onError }: { room: RoomState; me: string; onEr
             </li>
           ))}
         </ul>
-        {!enough && <p className="mt-3 text-xl text-ink-2">Precisa de pelo menos mais uma pessoa pra começar.</p>}
+        {!enough && <p className="mt-3 text-xl text-muted">Precisa de pelo menos mais uma pessoa pra começar.</p>}
       </section>
 
-      <section className="px-box p-4">
-        <h2 className="font-pixel mb-3 text-[11px] uppercase">Tempo de cada vez</h2>
+      <section className="box p-4">
+        <h2 className="font-display mb-3 text-[calc(11px*var(--dz))] uppercase">Tempo de cada vez</h2>
         <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-label="Tempo de cada vez">
           {TURN_OPTIONS.map((opt) => {
             const active = room.turnMinutes === opt.minutes;
@@ -83,22 +83,21 @@ export function Lobby({ room, me, onError }: { room: RoomState; me: string; onEr
                 key={opt.minutes}
                 role="radio"
                 aria-checked={active}
-                disabled={!isOwner}
-                onClick={() => act('room:config', { minutes: opt.minutes })}
-                className={`px-btn !m-1 !px-1 !text-[10px] ${active ? 'blue' : 'ghost'} ${!isOwner && !active ? 'opacity-50' : ''} disabled:cursor-default`}
-                style={!isOwner && active ? ({ '--btn-bg': 'var(--color-sky)', '--btn-shade': 'var(--color-sky-dark)', '--btn-fg': '#fff6e8' } as React.CSSProperties) : undefined}
+                aria-disabled={!isOwner}
+                onClick={() => isOwner && act('room:config', { minutes: opt.minutes })}
+                className={`px-btn !m-1 !px-1 !text-[calc(10px*var(--dz))] ${active ? 'blue' : 'ghost'} ${!isOwner ? 'cursor-default' : ''} ${!isOwner && !active ? 'opacity-50' : ''}`}
               >
                 {opt.label}
               </button>
             );
           })}
         </div>
-        {!isOwner && <p className="mt-2 text-xl text-ink-2">Só {owner?.name ?? 'o dono'} muda o tempo.</p>}
+        {!isOwner && <p className="mt-2 text-xl text-muted">Só {owner?.name ?? 'o dono'} muda o tempo.</p>}
       </section>
 
       {isOwner ? (
-        <button className="px-btn red w-[calc(100%-8px)] py-5 text-[14px]" disabled={!enough} onClick={() => act('party:start')}>
-          <PixelIcon name="pad" size={3} />
+        <button className="px-btn red w-[calc(100%-8px)] py-5 text-[calc(14px*var(--dz))]" disabled={!enough} onClick={() => act('party:start')}>
+          <Icon name="pad" size={3} />
           Começar a party
         </button>
       ) : (

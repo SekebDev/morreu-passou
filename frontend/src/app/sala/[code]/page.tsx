@@ -5,8 +5,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { Lobby } from '@/components/Lobby';
 import { Logo } from '@/components/Logo';
+import { ThemePicker } from '@/components/ThemePicker';
 import { Party } from '@/components/Party';
-import { PixelIcon } from '@/components/PixelIcon';
+import { Icon } from '@/components/Icon';
 import { Toast } from '@/components/Toast';
 import { useRoom } from '@/hooks/useRoom';
 import { getName, saveName } from '@/lib/identity';
@@ -36,8 +37,8 @@ export default function RoomPage() {
   if (status === 'error' || status === 'kicked') {
     return (
       <Screen>
-        <PixelIcon name="skull" size={8} />
-        <p className="font-pixel text-[16px] leading-relaxed">{status === 'kicked' ? 'Você saiu da sala' : 'Ih, deu ruim'}</p>
+        <Icon name="skull" size={8} />
+        <p className="font-display text-[calc(16px*var(--dz))] leading-relaxed">{status === 'kicked' ? 'Você saiu da sala' : 'Ih, deu ruim'}</p>
         <p className="text-3xl">{status === 'kicked' ? 'O dono te tirou da sala.' : error}</p>
         <Link href="/" className="px-btn mt-4">
           Voltar pro início
@@ -49,8 +50,8 @@ export default function RoomPage() {
   if (!room || status === 'connecting') {
     return (
       <Screen>
-        <PixelIcon name="pad" size={6} className="bob" />
-        <p className="font-pixel text-[12px]">
+        <Icon name="pad" size={6} className="bob" />
+        <p className="font-display text-[calc(12px*var(--dz))]">
           Entrando na sala {code}
           <span className="blink">…</span>
         </p>
@@ -63,14 +64,17 @@ export default function RoomPage() {
       <Toast message={flash} stamp={flashStamp} />
       <header className="flex items-center justify-between">
         <Logo small />
-        <button className="font-pixel flex items-center gap-2 text-[10px] uppercase text-ink-2" onClick={leave}>
-          <PixelIcon name="door" size={2} />
-          Sair
-        </button>
+        <div className="flex items-center gap-4">
+          <ThemePicker compact />
+          <button className="link-btn font-display flex items-center gap-2 text-[calc(10px*var(--dz))] uppercase" onClick={leave}>
+            <Icon name="door" size={2} />
+            Sair
+          </button>
+        </div>
       </header>
 
       {!online && (
-        <p className="px-box p-2 text-center text-xl [--box-bg:#f8d7cf]">Sem conexão. Tentando voltar…</p>
+        <p className="box p-2 text-center text-xl box-alert">Sem conexão. Tentando voltar…</p>
       )}
 
       {room.status === 'lobby' ? (
@@ -127,11 +131,11 @@ function NameGate({ code, onJoin }: { code: string; onJoin: (name: string) => vo
   return (
     <div className="flex flex-1 flex-col gap-8 pt-4">
       <Logo />
-      <form onSubmit={submit} className="px-box flex flex-col gap-4 p-4">
+      <form onSubmit={submit} className="box flex flex-col gap-4 p-4">
         <p className="text-3xl">
-          Te chamaram pra sala <strong className="font-pixel text-[18px] text-blood">{code}</strong>.
+          Te chamaram pra sala <strong className="font-display text-[calc(18px*var(--dz))] text-danger">{code}</strong>.
         </p>
-        <label htmlFor="gate-name" className="font-pixel text-[11px] uppercase">
+        <label htmlFor="gate-name" className="font-display text-[calc(11px*var(--dz))] uppercase">
           Seu nome
         </label>
         <input id="gate-name" className="px-input" value={name} maxLength={16} autoFocus placeholder="ex: Vitão" onChange={(e) => setName(e.target.value)} />
