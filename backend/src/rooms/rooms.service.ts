@@ -4,9 +4,12 @@ import {
   Phase,
   Player,
   PublicRoom,
+  QUEUE_MODES,
+  QueueMode,
   Room,
   ROOM_TTL_MS,
-  TURN_OPTIONS,
+  TURN_MAX,
+  TURN_MIN,
 } from './room.types';
 
 export class RoomError extends Error {}
@@ -52,13 +55,16 @@ export class RoomsService implements OnModuleDestroy {
       ownerId: playerId,
       players: [this.makePlayer(playerId, name)],
       turnMinutes: 30,
+      queueMode: 'rodizio',
       status: 'lobby',
       queue: [],
-      current: 0,
+      turn: 0,
       phase: 'idle',
       phaseStartedAt: null,
       phaseEndsAt: null,
       round: 1,
+      playedThisRound: new Set(),
+      stats: {},
       lastEvent: null,
       touchedAt: Date.now(),
     };
@@ -80,8 +86,7 @@ export class RoomsService implements OnModuleDestroy {
       );
       if (taken) throw new RoomError('Já tem alguém com esse nome na sala.');
       room.players.push(this.makePlayer(playerId, name));
-      // Chegou com a party rolando: entra no fim da fila.
-      if (room.status === 'playing') room.queue.push(playerId);
+      if (room.status === 'playing') this.addToQueue(room, playerId);
     }
     this.touch(room);
     return room;
@@ -111,10 +116,22 @@ export class RoomsService implements OnModuleDestroy {
   setTurnMinutes(code: string, by: string, minutes: number) {
     const room = this.mustGet(code);
     this.assertOwner(room, by);
-    if (!TURN_OPTIONS.includes(minutes as (typeof TURN_OPTIONS)[number])) {
-      throw new RoomError('Tempo inválido.');
+    if (!Number.isInteger(minutes) || minutes < TURN_MIN || minutes > TURN_MAX) {
+      throw new RoomError(`O tempo tem que ser de ${TURN_MIN} a ${TURN_MAX} minutos.`);
     }
     room.turnMinutes = minutes;
+    this.touch(room);
+  }
+
+  setQueueMode(code: string, by: string, mode: string) {
+    const room = this.mustGet(code);
+    this.assertOwner(room, by);
+    if (!QUEUE_MODES.includes(mode as QueueMode)) throw new RoomError('Estilo de fila inválido.');
+    room.queueMode = mode as QueueMode;
+    // Com a party rolando, quem joga agora continua; só a previsão do resto muda.
+    if (room.status === 'playing' && room.queueMode === 'menos-tempo') {
+      room.queue = [room.queue[0], ...this.byLeastTime(room, room.queue.slice(1))];
+    }
     this.touch(room);
   }
 
@@ -125,8 +142,10 @@ export class RoomsService implements OnModuleDestroy {
     if (room.players.length < 2) throw new RoomError('Precisa de pelo menos 2 pessoas.');
     room.queue = shuffle(room.players.map((p) => p.id));
     room.status = 'playing';
-    room.current = 0;
+    room.turn = 0;
     room.round = 1;
+    room.playedThisRound = new Set();
+    room.stats = Object.fromEntries(room.players.map((p) => [p.id, { playedMs: 0, turns: 0 }]));
     room.lastEvent = 'Fila sorteada!';
     this.enterPrep(room);
   }
@@ -135,31 +154,23 @@ export class RoomsService implements OnModuleDestroy {
   startTurn(code: string, by: string) {
     const room = this.mustGet(code);
     if (room.status !== 'playing' || room.phase !== 'prep') return;
-    if (room.queue[room.current] !== by) throw new RoomError('Não é a sua vez.');
+    if (room.queue[0] !== by) throw new RoomError('Não é a sua vez.');
     this.enterPlaying(room);
   }
 
   died(code: string, by: string) {
     const room = this.mustGet(code);
     if (room.status !== 'playing') return;
-    const isCurrent = room.queue[room.current] === by;
+    const isCurrent = room.queue[0] === by;
     if (!isCurrent && room.ownerId !== by) throw new RoomError('Não é a sua vez.');
-    const who = this.nameOf(room, room.queue[room.current]);
+    const who = this.nameOf(room, room.queue[0]);
     this.advance(room, isCurrent ? `${who} morreu` : `${who} foi pulado`);
   }
 
   end(code: string, by: string) {
     const room = this.mustGet(code);
     this.assertOwner(room, by);
-    this.clearTimer(code);
-    room.status = 'lobby';
-    room.queue = [];
-    room.current = 0;
-    room.phase = 'idle';
-    room.phaseStartedAt = null;
-    room.phaseEndsAt = null;
-    room.lastEvent = 'Party encerrada';
-    this.touch(room);
+    this.toLobby(room, 'Party encerrada');
   }
 
   toPublic(room: Room): PublicRoom {
@@ -168,13 +179,15 @@ export class RoomsService implements OnModuleDestroy {
       ownerId: room.ownerId,
       players: room.players.map(({ id, name, connected }) => ({ id, name, connected })),
       turnMinutes: room.turnMinutes,
+      queueMode: room.queueMode,
       status: room.status,
       queue: room.queue,
-      current: room.current,
+      turn: room.turn,
       phase: room.phase,
       phaseStartedAt: room.phaseStartedAt,
       phaseEndsAt: room.phaseEndsAt,
       round: room.round,
+      stats: room.stats,
       lastEvent: room.lastEvent,
       serverNow: Date.now(),
     };
@@ -188,7 +201,7 @@ export class RoomsService implements OnModuleDestroy {
 
   private enterPlaying(room: Room) {
     this.setPhase(room, 'playing', room.turnMinutes * MINUTE_MS, () => {
-      const who = this.nameOf(room, room.queue[room.current]);
+      const who = this.nameOf(room, room.queue[0]);
       this.advance(room, `Acabou o tempo de ${who}`);
     });
   }
@@ -208,11 +221,86 @@ export class RoomsService implements OnModuleDestroy {
 
   private advance(room: Room, event: string) {
     room.lastEvent = event;
-    if (room.queue.length === 0) return this.end(room.code, room.ownerId);
-    const next = (room.current + 1) % room.queue.length;
-    if (next === 0) room.round += 1;
-    room.current = next;
+    if (room.queue.length === 0) return this.toLobby(room, event);
+    const [done, ...rest] = room.queue;
+    this.closeTurn(room, done);
+    const newRound = this.checkRound(room);
+    room.queue = this.nextOrder(room, done, rest, newRound);
+    room.turn += 1;
     this.enterPrep(room);
+  }
+
+  /** Soma o tempo jogado e marca que a pessoa já teve a vez nesta rodada. */
+  private closeTurn(room: Room, id: string) {
+    const st = (room.stats[id] ??= { playedMs: 0, turns: 0 });
+    if (room.phase === 'playing' && room.phaseStartedAt) {
+      st.playedMs += Date.now() - room.phaseStartedAt;
+      st.turns += 1;
+    }
+    room.playedThisRound.add(id);
+  }
+
+  /** Todo mundo da fila já jogou? Então vira a rodada. */
+  private checkRound(room: Room): boolean {
+    if (room.queue.length === 0 || !room.queue.every((id) => room.playedThisRound.has(id))) return false;
+    room.round += 1;
+    room.playedThisRound = new Set();
+    return true;
+  }
+
+  /** Monta a fila depois que `done` passou a vez. Quem acabou de jogar nunca joga duas seguidas. */
+  private nextOrder(room: Room, done: string, rest: string[], newRound: boolean): string[] {
+    if (rest.length === 0) return [done];
+    switch (room.queueMode) {
+      case 'menos-tempo': {
+        const [next, ...others] = this.byLeastTime(room, rest);
+        return [next, ...this.byLeastTime(room, [...others, done])];
+      }
+      case 'sorteio': {
+        if (!newRound) return [...rest, done];
+        const order = shuffle([...rest, done]);
+        if (order[0] === done) [order[0], order[1]] = [order[1], order[0]];
+        return order;
+      }
+      default:
+        return [...rest, done];
+    }
+  }
+
+  /** Ordena por menos tempo jogado; empate vai pra quem jogou menos vezes, depois mantém a ordem. */
+  private byLeastTime(room: Room, ids: string[]): string[] {
+    const st = (id: string) => room.stats[id] ?? { playedMs: 0, turns: 0 };
+    return ids
+      .map((id, i) => ({ id, i }))
+      .sort((a, b) => st(a.id).playedMs - st(b.id).playedMs || st(a.id).turns - st(b.id).turns || a.i - b.i)
+      .map((x) => x.id);
+  }
+
+  /** Quem chega com a party rolando entra antes de quem já jogou nesta rodada. */
+  private addToQueue(room: Room, id: string) {
+    if (room.queue.includes(id)) return;
+    // No "menos tempo", começa empatado com quem jogou menos, pra não furar a fila por horas.
+    const minMs = Math.min(...room.queue.map((q) => room.stats[q]?.playedMs ?? 0));
+    room.stats[id] ??= { playedMs: Number.isFinite(minMs) ? minMs : 0, turns: 0 };
+    if (room.queueMode === 'menos-tempo') {
+      room.queue = [room.queue[0], ...this.byLeastTime(room, [...room.queue.slice(1), id])];
+      return;
+    }
+    const firstPlayed = room.queue.findIndex((q, i) => i > 0 && room.playedThisRound.has(q));
+    if (firstPlayed === -1) room.queue.push(id);
+    else room.queue.splice(firstPlayed, 0, id);
+  }
+
+  private toLobby(room: Room, event: string) {
+    this.clearTimer(room.code);
+    room.status = 'lobby';
+    room.queue = [];
+    room.phase = 'idle';
+    room.phaseStartedAt = null;
+    room.phaseEndsAt = null;
+    room.playedThisRound = new Set();
+    room.lastEvent = event;
+    this.touch(room);
   }
 
   private removePlayer(room: Room, playerId: string, event: string) {
@@ -228,24 +316,16 @@ export class RoomsService implements OnModuleDestroy {
 
     const qIdx = room.queue.indexOf(playerId);
     if (qIdx !== -1 && room.status === 'playing') {
-      const wasCurrent = qIdx === room.current;
       room.queue.splice(qIdx, 1);
+      room.playedThisRound.delete(playerId);
       if (room.queue.length < 2) {
-        this.clearTimer(room.code);
-        room.status = 'lobby';
-        room.queue = [];
-        room.current = 0;
-        room.phase = 'idle';
-        room.phaseStartedAt = null;
-        room.phaseEndsAt = null;
-        room.lastEvent = `${event}. Pouca gente pra continuar.`;
-        this.touch(room);
+        this.toLobby(room, `${event}. Pouca gente pra continuar.`);
         return;
       }
-      if (qIdx < room.current) room.current -= 1;
       room.lastEvent = event;
-      if (wasCurrent) {
-        room.current = room.current % room.queue.length;
+      if (qIdx === 0) {
+        this.checkRound(room);
+        room.turn += 1;
         this.enterPrep(room);
         return;
       }

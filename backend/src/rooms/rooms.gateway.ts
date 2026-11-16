@@ -79,6 +79,11 @@ export class RoomsGateway implements OnGatewayInit, OnGatewayDisconnect {
     return this.act(s, (code, me) => this.rooms.setTurnMinutes(code, me, Number(b?.minutes)));
   }
 
+  @SubscribeMessage('room:queue-mode')
+  queueMode(@ConnectedSocket() s: Socket, @MessageBody() b: { mode: string }): Ack {
+    return this.act(s, (code, me) => this.rooms.setQueueMode(code, me, String(b?.mode)));
+  }
+
   @SubscribeMessage('room:kick')
   kick(@ConnectedSocket() s: Socket, @MessageBody() b: { playerId: string }): Ack {
     return this.act(s, (code, me) => this.rooms.kick(code, me, String(b?.playerId)));

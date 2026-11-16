@@ -21,7 +21,7 @@ interface Props {
 
 export function Party({ room, me, serverNow, onError }: Props) {
   useTick(true, 250);
-  const currentId = room.queue[room.current];
+  const currentId = room.queue[0];
   const myTurn = currentId === me;
   const left = room.phaseEndsAt ? room.phaseEndsAt - serverNow() : 0;
   const total = room.phaseEndsAt && room.phaseStartedAt ? room.phaseEndsAt - room.phaseStartedAt : 1;
@@ -109,9 +109,8 @@ function Playing({ left, total, onDied }: { left: number; total: number; onDied:
 }
 
 function Waiting({ room, me, left }: { room: RoomState; me: string; left: number }) {
-  const current = room.players.find((p) => p.id === room.queue[room.current]);
-  const myPos = room.queue.indexOf(me);
-  const ahead = myPos === -1 ? -1 : (myPos - room.current + room.queue.length) % room.queue.length;
+  const current = room.players.find((p) => p.id === room.queue[0]);
+  const ahead = room.queue.indexOf(me);
 
   return (
     <section className="box flex flex-col items-center gap-3 p-5 text-center">
@@ -133,8 +132,8 @@ function Waiting({ room, me, left }: { room: RoomState; me: string; left: number
 
 function OwnerTools({ room, me, act }: { room: RoomState; me: string; act: (e: string) => void }) {
   const [confirmEnd, setConfirmEnd] = useState(false);
-  const current = room.players.find((p) => p.id === room.queue[room.current]);
-  const someoneElse = room.queue[room.current] !== me;
+  const current = room.players.find((p) => p.id === room.queue[0]);
+  const someoneElse = room.queue[0] !== me;
   return (
     <details className="box p-4 box-sunk">
       <summary className="eyebrow font-display flex cursor-pointer items-center gap-2 text-[calc(11px*var(--dz))] uppercase">
