@@ -21,6 +21,7 @@ export interface Room {
   /** Índice na fila de quem joga agora. */
   current: number;
   phase: Phase;
+  phaseStartedAt: number | null;
   phaseEndsAt: number | null;
   round: number;
   lastEvent: string | null;

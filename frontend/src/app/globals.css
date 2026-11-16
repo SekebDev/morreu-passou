@@ -1,0 +1,201 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-paper: #efe4cc;
+  --color-paper-2: #e2d3b2;
+  --color-ink: #231a1c;
+  --color-ink-2: #4a3b3a;
+  --color-blood: #c8352c;
+  --color-blood-dark: #8e1f1a;
+  --color-moss: #4f8a3c;
+  --color-moss-dark: #2f5a24;
+  --color-gold: #f0b429;
+  --color-gold-dark: #b07a0c;
+  --color-sky: #3d6db3;
+  --color-sky-dark: #24477d;
+  --font-pixel: var(--font-press-start), ui-monospace, monospace;
+  --font-body: var(--font-vt323), ui-monospace, monospace;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: var(--color-paper);
+  /* pontilhado de 2px, tipo papel de manual de cartucho */
+  background-image: radial-gradient(rgb(35 26 28 / 0.09) 1px, transparent 1px);
+  background-size: 6px 6px;
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 22px;
+  line-height: 1.15;
+  image-rendering: pixelated;
+}
+
+/* Caixa com cantos "comidos" e sombra dura, sem border-radius. */
+.px-box {
+  position: relative;
+  background: var(--box-bg, #fbf5e6);
+  box-shadow:
+    0 -4px 0 0 var(--color-ink),
+    0 4px 0 0 var(--color-ink),
+    -4px 0 0 0 var(--color-ink),
+    4px 0 0 0 var(--color-ink),
+    0 8px 0 0 rgb(35 26 28 / 0.25),
+    4px 4px 0 0 rgb(35 26 28 / 0.25);
+  margin: 4px;
+}
+
+.px-btn {
+  --btn-bg: var(--color-gold);
+  --btn-shade: var(--color-gold-dark);
+  --btn-fg: var(--color-ink);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  margin: 4px 4px 8px;
+  padding: 14px 18px 18px;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-family: var(--font-pixel);
+  font-size: 13px;
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  user-select: none;
+  box-shadow:
+    inset 0 -6px 0 0 var(--btn-shade),
+    inset 4px 4px 0 0 rgb(255 255 255 / 0.28),
+    0 -4px 0 0 var(--color-ink),
+    0 4px 0 0 var(--color-ink),
+    -4px 0 0 0 var(--color-ink),
+    4px 0 0 0 var(--color-ink),
+    0 8px 0 0 var(--color-ink);
+  transition: transform 60ms steps(1);
+}
+.px-btn:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow:
+    inset 0 -2px 0 0 var(--btn-shade),
+    inset 4px 4px 0 0 rgb(0 0 0 / 0.12),
+    0 -4px 0 0 var(--color-ink),
+    0 4px 0 0 var(--color-ink),
+    -4px 0 0 0 var(--color-ink),
+    4px 0 0 0 var(--color-ink);
+}
+.px-btn:focus-visible {
+  outline: 4px dashed var(--color-sky);
+  outline-offset: 8px;
+}
+.px-btn:disabled {
+  --btn-bg: #cfc3a8;
+  --btn-shade: #a99c80;
+  --btn-fg: #7a6d60;
+  cursor: not-allowed;
+}
+.px-btn.red {
+  --btn-bg: var(--color-blood);
+  --btn-shade: var(--color-blood-dark);
+  --btn-fg: #fff6e8;
+}
+.px-btn.green {
+  --btn-bg: var(--color-moss);
+  --btn-shade: var(--color-moss-dark);
+  --btn-fg: #fff6e8;
+}
+.px-btn.blue {
+  --btn-bg: var(--color-sky);
+  --btn-shade: var(--color-sky-dark);
+  --btn-fg: #fff6e8;
+}
+.px-btn.ghost {
+  --btn-bg: #fbf5e6;
+  --btn-shade: var(--color-paper-2);
+}
+
+.px-input {
+  width: 100%;
+  background: #fffaf0;
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 28px;
+  padding: 8px 12px 6px;
+  margin: 4px;
+  width: calc(100% - 8px);
+  box-shadow:
+    inset 4px 4px 0 0 rgb(35 26 28 / 0.15),
+    0 -4px 0 0 var(--color-ink),
+    0 4px 0 0 var(--color-ink),
+    -4px 0 0 0 var(--color-ink),
+    4px 0 0 0 var(--color-ink);
+  outline: none;
+}
+.px-input:focus {
+  background: #fff3c9;
+}
+.px-input::placeholder {
+  color: #a8987f;
+}
+
+.font-pixel {
+  font-family: var(--font-pixel);
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+.blink {
+  animation: blink 1s steps(1) infinite;
+}
+
+@keyframes bob {
+  50% {
+    transform: translateY(-4px);
+  }
+}
+.bob {
+  animation: bob 0.8s steps(1) infinite;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-4px, 0);
+  }
+  75% {
+    transform: translate(4px, 0);
+  }
+}
+.shake {
+  animation: shake 0.2s steps(1) infinite;
+}
+
+@keyframes drop-in {
+  from {
+    transform: translateY(140%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.drop-in {
+  animation: drop-in 0.25s steps(4) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blink,
+  .bob,
+  .shake,
+  .drop-in {
+    animation: none;
+  }
+}

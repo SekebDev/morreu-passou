@@ -56,6 +56,7 @@ export class RoomsService implements OnModuleDestroy {
       queue: [],
       current: 0,
       phase: 'idle',
+      phaseStartedAt: null,
       phaseEndsAt: null,
       round: 1,
       lastEvent: null,
@@ -155,6 +156,7 @@ export class RoomsService implements OnModuleDestroy {
     room.queue = [];
     room.current = 0;
     room.phase = 'idle';
+    room.phaseStartedAt = null;
     room.phaseEndsAt = null;
     room.lastEvent = 'Party encerrada';
     this.touch(room);
@@ -170,6 +172,7 @@ export class RoomsService implements OnModuleDestroy {
       queue: room.queue,
       current: room.current,
       phase: room.phase,
+      phaseStartedAt: room.phaseStartedAt,
       phaseEndsAt: room.phaseEndsAt,
       round: room.round,
       lastEvent: room.lastEvent,
@@ -193,7 +196,8 @@ export class RoomsService implements OnModuleDestroy {
   private setPhase(room: Room, phase: Phase, ms: number, onEnd: () => void) {
     this.clearTimer(room.code);
     room.phase = phase;
-    room.phaseEndsAt = Date.now() + ms;
+    room.phaseStartedAt = Date.now();
+    room.phaseEndsAt = room.phaseStartedAt + ms;
     const t = setTimeout(() => {
       this.timers.delete(room.code);
       if (this.rooms.get(room.code) === room) onEnd();
@@ -232,6 +236,7 @@ export class RoomsService implements OnModuleDestroy {
         room.queue = [];
         room.current = 0;
         room.phase = 'idle';
+        room.phaseStartedAt = null;
         room.phaseEndsAt = null;
         room.lastEvent = `${event}. Pouca gente pra continuar.`;
         this.touch(room);

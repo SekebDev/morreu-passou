@@ -15,7 +15,10 @@ test('fluxo completo da party', async () => {
     stdio: 'ignore',
   });
   try {
-    await wait(1500);
+    for (let i = 0; i < 50; i++) {
+      try { if ((await fetch(`http://localhost:${PORT}/health`)).ok) break; } catch {}
+      await wait(200);
+    }
     const mk = () => {
       const s = io(`http://localhost:${PORT}`, { transports: ['websocket'], reconnection: false });
       s.state = null;
@@ -68,13 +71,14 @@ test('fluxo completo da party', async () => {
     assert.match(a.state.lastEvent, /Acabou o tempo/);
 
     // reconexão com mesmo playerId mantém o lugar
+    const watcher = [a, b, c].find((s) => s !== second);
     second.disconnect();
-    await wait(100);
-    assert.equal(a.state.players.find((p) => p.id === second.id_).connected, false);
+    await wait(300);
+    assert.equal(watcher.state.players.find((p) => p.id === second.id_).connected, false);
     const again = mk(); again.id_ = second.id_;
     assert.equal((await emit(again, 'room:join', { code, playerId: second.id_, name: 'X' })).ok, true);
     await wait(50);
-    assert.equal(a.state.players.length, 3);
+    assert.equal(watcher.state.players.length, 3);
 
     [a, b, c, again].forEach((s) => s.disconnect());
   } finally {
