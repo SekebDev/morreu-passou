@@ -74,6 +74,24 @@ Para testar o fluxo à mão sem esperar 10 minutos, encurte os tempos:
 MINUTE_MS=3000 PREP_MS=8000 npm run dev   # 1 "minuto" vira 3s, preparo vira 8s
 ```
 
+## Deploy
+
+| Parte | Onde | Por quê |
+| --- | --- | --- |
+| `frontend/` | Vercel, com **Root Directory** = `frontend` | Next.js roda direto, grátis no Hobby |
+| `backend/` | Render (`render.yaml` na raiz) | Precisa ser **um processo só e sempre vivo**: as salas e os timers ficam em memória |
+
+O backend não vai pra Vercel porque lá as funções escalam em várias instâncias e fecham as conexões
+depois de alguns minutos, aí jogadores da mesma sala cairiam em memórias diferentes.
+
+1. No Render: **New > Blueprint**, escolha este repositório. Ele lê o `render.yaml`. Preencha
+   `CORS_ORIGIN` com o endereço do site na Vercel.
+2. Na Vercel: importe o repositório com Root Directory `frontend` e a variável
+   `NEXT_PUBLIC_SERVER_URL` = endereço do backend no Render (ex.: `https://morreu-passou-backend.onrender.com`).
+
+No plano grátis do Render o backend dorme depois de 15 minutos sem ninguém conectado e leva uns 50
+segundos pra acordar na primeira visita.
+
 ## Variáveis de ambiente
 
 | Variável | Onde | Padrão | Pra quê |

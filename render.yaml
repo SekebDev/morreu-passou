@@ -1,0 +1,17 @@
+# Blueprint do Render pro backend (NestJS + socket.io).
+# Um único processo de longa duração: as salas ficam em memória, então não escale pra mais de 1 instância.
+services:
+  - type: web
+    name: morreu-passou-backend
+    runtime: node
+    rootDir: backend
+    plan: free
+    region: virginia
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: CORS_ORIGIN
+        sync: false # ex.: https://morreu-passou.vercel.app
