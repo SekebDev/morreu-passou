@@ -94,13 +94,13 @@ function useRoomEffects(room: RoomState | null, me: string, notify: (m: string) 
     prev.current = room;
     if (!room) return;
 
-    const current = room.queue[room.current];
+    const current = room.queue[0];
     const myTurn = room.status === 'playing' && current === me;
     document.title = myTurn ? '▶ SUA VEZ · Morreu, Passou' : `Sala ${room.code} · Morreu, Passou`;
 
     if (!before) return;
     const turnChanged =
-      before.status !== room.status || before.current !== room.current || before.round !== room.round || before.phase !== room.phase;
+      before.status !== room.status || before.turn !== room.turn || before.round !== room.round || before.phase !== room.phase;
     if (room.lastEvent && turnChanged && room.lastEvent !== before.lastEvent) notify(room.lastEvent);
     else if (room.lastEvent && before.status === 'playing' && room.status === 'lobby') notify(room.lastEvent);
 
@@ -111,7 +111,7 @@ function useRoomEffects(room: RoomState | null, me: string, notify: (m: string) 
         buzz([120, 80, 120, 80, 300]);
       }
     }
-    if (before.phase === 'playing' && before.queue[before.current] === me && /tempo/i.test(room.lastEvent ?? '') && turnChanged) {
+    if (before.phase === 'playing' && before.queue[0] === me && /tempo/i.test(room.lastEvent ?? '') && turnChanged) {
       sfx.timeUp();
       buzz(500);
     }

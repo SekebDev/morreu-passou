@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
+import { minutesLabel } from '@/lib/format';
 import { emit } from '@/lib/socket';
-import { TURN_OPTIONS, type RoomState } from '@/lib/types';
+import { QUEUE_MODES, TURN_MAX, TURN_MIN, TURN_OPTIONS, type RoomState } from '@/lib/types';
 import { Icon } from './Icon';
 
 export function Lobby({ room, me, onError }: { room: RoomState; me: string; onError: (m: string) => void }) {
@@ -73,27 +74,8 @@ export function Lobby({ room, me, onError }: { room: RoomState; me: string; onEr
         {!enough && <p className="mt-3 text-xl text-muted">Precisa de pelo menos mais uma pessoa pra começar.</p>}
       </section>
 
-      <section className="box p-4">
-        <h2 className="eyebrow font-display mb-3 text-[calc(11px*var(--dz))] uppercase">Tempo de cada vez</h2>
-        <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-label="Tempo de cada vez">
-          {TURN_OPTIONS.map((opt) => {
-            const active = room.turnMinutes === opt.minutes;
-            return (
-              <button
-                key={opt.minutes}
-                role="radio"
-                aria-checked={active}
-                aria-disabled={!isOwner}
-                onClick={() => isOwner && act('room:config', { minutes: opt.minutes })}
-                className={`px-btn !m-1 !px-1 !text-[calc(10px*var(--dz))] ${active ? 'blue' : 'ghost'} ${!isOwner ? 'cursor-default' : ''} ${!isOwner && !active ? 'opacity-50' : ''}`}
-              >
-                {opt.label}
-              </button>
-            );
-          })}
-        </div>
-        {!isOwner && <p className="mt-2 text-xl text-muted">Só {owner?.name ?? 'o dono'} muda o tempo.</p>}
-      </section>
+      <TurnTime room={room} isOwner={isOwner} ownerName={owner?.name} act={act} />
+      <QueueMode room={room} isOwner={isOwner} ownerName={owner?.name} act={act} />
 
       {isOwner ? (
         <button className="px-btn red w-[calc(100%-8px)] py-5 text-[calc(14px*var(--dz))]" disabled={!enough} onClick={() => act('party:start')}>
@@ -106,5 +88,130 @@ export function Lobby({ room, me, onError }: { room: RoomState; me: string; onEr
         </p>
       )}
     </div>
+  );
+}
+
+type Act = (event: string, body?: object) => Promise<void>;
+interface ConfigProps {
+  room: RoomState;
+  isOwner: boolean;
+  ownerName?: string;
+  act: Act;
+}
+
+function choiceClass(active: boolean, isOwner: boolean) {
+  return `px-btn !m-1 !px-1 !text-[calc(10px*var(--dz))] ${active ? 'blue' : 'ghost'} ${!isOwner ? 'cursor-default' : ''} ${!isOwner && !active ? 'opacity-50' : ''}`;
+}
+
+function TurnTime({ room, isOwner, ownerName, act }: ConfigProps) {
+  const isPreset = TURN_OPTIONS.some((o) => o.minutes === room.turnMinutes);
+  const [custom, setCustom] = useState(!isPreset);
+  const [value, setValue] = useState(isPreset ? '' : String(room.turnMinutes));
+  const n = Number(value);
+  const valid = Number.isInteger(n) && n >= TURN_MIN && n <= TURN_MAX;
+
+  function submit(e: FormEvent) {
+    e.preventDefault();
+    if (valid) void act('room:config', { minutes: n });
+  }
+
+  return (
+    <section className="box p-4">
+      <h2 className="eyebrow font-display mb-3 flex justify-between text-[calc(11px*var(--dz))] uppercase">
+        <span>Tempo de cada vez</span>
+        {!isPreset && <span className="text-muted">{minutesLabel(room.turnMinutes)}</span>}
+      </h2>
+      <div className="grid grid-cols-5 gap-2" role="radiogroup" aria-label="Tempo de cada vez">
+        {TURN_OPTIONS.map((opt) => {
+          const active = room.turnMinutes === opt.minutes && !custom;
+          return (
+            <button
+              key={opt.minutes}
+              role="radio"
+              aria-checked={active}
+              aria-disabled={!isOwner}
+              onClick={() => {
+                if (!isOwner) return;
+                setCustom(false);
+                void act('room:config', { minutes: opt.minutes });
+              }}
+              className={choiceClass(active, isOwner)}
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+        <button
+          role="radio"
+          aria-checked={custom || !isPreset}
+          aria-disabled={!isOwner}
+          onClick={() => {
+            if (!isOwner) return;
+            setCustom(true);
+            if (!value) setValue(String(room.turnMinutes));
+          }}
+          className={choiceClass(custom || !isPreset, isOwner)}
+        >
+          Outro
+        </button>
+      </div>
+      {isOwner && custom && (
+        <form onSubmit={submit} className="mt-3 flex items-center gap-2">
+          <label htmlFor="turn-custom" className="sr-only">
+            Minutos por vez
+          </label>
+          <input
+            id="turn-custom"
+            className="px-input !w-28 text-center tabular-nums"
+            type="number"
+            inputMode="numeric"
+            min={TURN_MIN}
+            max={TURN_MAX}
+            step={1}
+            value={value}
+            autoFocus
+            onChange={(e) => setValue(e.target.value)}
+          />
+          <span className="text-2xl">min</span>
+          <button className="px-btn green ml-auto !text-[calc(10px*var(--dz))]" disabled={!valid || n === room.turnMinutes}>
+            Usar
+          </button>
+        </form>
+      )}
+      {isOwner && custom && value !== '' && !valid && (
+        <p className="mt-2 text-xl text-danger">
+          De {TURN_MIN} a {TURN_MAX} minutos.
+        </p>
+      )}
+      {!isOwner && <p className="mt-2 text-xl text-muted">Só {ownerName ?? 'o dono'} muda o tempo.</p>}
+    </section>
+  );
+}
+
+function QueueMode({ room, isOwner, ownerName, act }: ConfigProps) {
+  const current = QUEUE_MODES.find((m) => m.mode === room.queueMode) ?? QUEUE_MODES[0];
+  return (
+    <section className="box p-4">
+      <h2 className="eyebrow font-display mb-3 text-[calc(11px*var(--dz))] uppercase">Estilo da fila</h2>
+      <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Estilo da fila">
+        {QUEUE_MODES.map((m) => {
+          const active = room.queueMode === m.mode;
+          return (
+            <button
+              key={m.mode}
+              role="radio"
+              aria-checked={active}
+              aria-disabled={!isOwner}
+              onClick={() => isOwner && act('room:queue-mode', { mode: m.mode })}
+              className={`${choiceClass(active, isOwner)} leading-snug`}
+            >
+              {m.label}
+            </button>
+          );
+        })}
+      </div>
+      <p className="mt-2 text-xl text-muted">{current.hint}</p>
+      {!isOwner && <p className="mt-1 text-xl text-muted">Só {ownerName ?? 'o dono'} muda a fila.</p>}
+    </section>
   );
 }

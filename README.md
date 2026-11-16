@@ -6,6 +6,18 @@ Quando a party começa, a fila é sorteada. Quem está na vez vê o timer e o bo
 quem está jogando e quanto falta. Morreu ou acabou o tempo, o próximo tem 30 segundos pra pegar o
 controle (ou aperta **Começar agora**) e o timer dele começa.
 
+O dono escolhe o tempo de cada vez (atalhos de 10, 20, 30 min e 1 hora, ou **Outro** pra digitar de
+1 a 240 minutos) e o estilo da fila:
+
+| Estilo | Como anda |
+|---|---|
+| Rodízio | ordem sorteada no começo; morreu, vai pro fim da fila |
+| Quem jogou menos | quem tem menos tempo de jogo somado vai na frente (ninguém joga duas seguidas) |
+| Sorteio por rodada | todo mundo joga uma vez por rodada, numa ordem nova a cada rodada |
+
+Quem entra com a party rolando joga antes de quem já jogou na rodada. No "quem jogou menos", começa
+empatado com quem jogou menos tempo, pra não passar horas na frente de todo mundo.
+
 ## Temas
 
 Cada pessoa escolhe o tema no próprio celular (botão **Tema**, no topo). Fica salvo no navegador.
@@ -67,6 +79,7 @@ cd backend && npm test
 
 O teste sobe o servidor com tempos curtos e simula 3 jogadores: criar sala, entrar, nome repetido,
 só o dono configura, fila sorteada, morrer, auto-início depois do preparo, fim do tempo e reconexão.
+Também testa os estilos de fila e o tempo livre.
 
 Para testar o fluxo à mão sem esperar 10 minutos, encurte os tempos:
 
