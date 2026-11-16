@@ -13,7 +13,7 @@ Cada pessoa escolhe o tema no próprio celular (botão **Tema**, no topo). Fica 
 | Tema | Inspiração | Marca registrada |
 | --- | --- | --- |
 | Cartucho | 8 bits, manual de cartucho | barra de vida em blocos, GAME OVER |
-| Vice | pôr do sol na Flórida, estilo GTA 6 | céu degradê com palmeiras, tempo em estrelas, JÁ ERA em preto e branco |
+| Vice | site oficial do GTA 6 | azul-marinho liso, títulos condensados creme, rótulos e botões pastel, tempo em estrelas, JÁ ERA em degradê pêssego-rosa |
 | Cinzas | soulslike, fogueira e castelo | brasas subindo, fio dourado, VOCÊ MORREU |
 | Neon | cidade cyberpunk | cantos cortados, segmentos inclinados, FLATLINE com glitch |
 

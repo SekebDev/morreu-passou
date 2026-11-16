@@ -135,7 +135,7 @@ function NameGate({ code, onJoin }: { code: string; onJoin: (name: string) => vo
         <p className="text-3xl">
           Te chamaram pra sala <strong className="font-display text-[calc(18px*var(--dz))] text-danger">{code}</strong>.
         </p>
-        <label htmlFor="gate-name" className="font-display text-[calc(11px*var(--dz))] uppercase">
+        <label htmlFor="gate-name" className="eyebrow font-display text-[calc(11px*var(--dz))] uppercase">
           Seu nome
         </label>
         <input id="gate-name" className="px-input" value={name} maxLength={16} autoFocus placeholder="ex: Vitão" onChange={(e) => setName(e.target.value)} />

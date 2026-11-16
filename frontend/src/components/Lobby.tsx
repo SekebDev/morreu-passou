@@ -35,7 +35,7 @@ export function Lobby({ room, me, onError }: { room: RoomState; me: string; onEr
   return (
     <div className="flex flex-col gap-6">
       <section className="box flex flex-col items-center gap-2 p-5 text-center">
-        <span className="font-display text-[calc(11px*var(--dz))] uppercase text-muted">Código da sala</span>
+        <span className="eyebrow font-display text-[calc(11px*var(--dz))] uppercase text-muted">Código da sala</span>
         <span className="font-display text-[calc(44px*var(--dz))] leading-none tracking-[0.18em] text-danger" aria-label={`Código ${room.code.split('').join(' ')}`}>
           {room.code}
         </span>
@@ -45,7 +45,7 @@ export function Lobby({ room, me, onError }: { room: RoomState; me: string; onEr
       </section>
 
       <section className="box p-4">
-        <h2 className="font-display mb-3 flex justify-between text-[calc(11px*var(--dz))] uppercase">
+        <h2 className="eyebrow font-display mb-3 flex justify-between text-[calc(11px*var(--dz))] uppercase">
           <span>Na sala</span>
           <span className="text-muted">{room.players.length}/16</span>
         </h2>
@@ -74,7 +74,7 @@ export function Lobby({ room, me, onError }: { room: RoomState; me: string; onEr
       </section>
 
       <section className="box p-4">
-        <h2 className="font-display mb-3 text-[calc(11px*var(--dz))] uppercase">Tempo de cada vez</h2>
+        <h2 className="eyebrow font-display mb-3 text-[calc(11px*var(--dz))] uppercase">Tempo de cada vez</h2>
         <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-label="Tempo de cada vez">
           {TURN_OPTIONS.map((opt) => {
             const active = room.turnMinutes === opt.minutes;

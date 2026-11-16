@@ -75,7 +75,7 @@ export default function Home() {
       </header>
 
       <section className="box flex flex-col gap-3 p-4">
-        <label htmlFor="name" className="font-display text-[calc(11px*var(--dz))] uppercase">
+        <label htmlFor="name" className="eyebrow font-display text-[calc(11px*var(--dz))] uppercase">
           Seu nome
         </label>
         <input
@@ -103,7 +103,7 @@ export default function Home() {
       </div>
 
       <form onSubmit={join} className="box flex flex-col gap-3 p-4">
-        <label htmlFor="code" className="font-display text-[calc(11px*var(--dz))] uppercase">
+        <label htmlFor="code" className="eyebrow font-display text-[calc(11px*var(--dz))] uppercase">
           Código da sala
         </label>
         <div className="flex items-stretch gap-3">

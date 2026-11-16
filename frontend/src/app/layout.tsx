@@ -1,11 +1,10 @@
 import type { Metadata, Viewport } from 'next';
 import {
-  Barlow_Semi_Condensed,
-  Big_Shoulders,
   Chakra_Petch,
   Cinzel,
   EB_Garamond,
-  Mr_Dafoe,
+  Oswald,
+  Outfit,
   Press_Start_2P,
   Rajdhani,
   VT323,
@@ -19,9 +18,8 @@ import './globals.css';
 const pressStart = Press_Start_2P({ weight: '400', subsets: ['latin'], variable: '--font-press-start' });
 const vt323 = VT323({ weight: '400', subsets: ['latin'], variable: '--font-vt323' });
 // Vice
-const bigShoulders = Big_Shoulders({ weight: ['700', '900'], subsets: ['latin'], variable: '--font-shoulders', preload: false });
-const barlow = Barlow_Semi_Condensed({ weight: ['500', '600', '700'], subsets: ['latin'], variable: '--font-barlow', preload: false });
-const dafoe = Mr_Dafoe({ weight: '400', subsets: ['latin'], variable: '--font-dafoe', preload: false });
+const oswald = Oswald({ weight: ['600', '700'], subsets: ['latin'], variable: '--font-oswald', preload: false });
+const outfit = Outfit({ weight: ['500', '700'], subsets: ['latin'], variable: '--font-outfit', preload: false });
 // Cinzas
 const cinzel = Cinzel({ weight: ['500', '700'], subsets: ['latin'], variable: '--font-cinzel', preload: false });
 const garamond = EB_Garamond({ weight: ['400', '500'], subsets: ['latin'], variable: '--font-garamond', preload: false });
@@ -29,7 +27,7 @@ const garamond = EB_Garamond({ weight: ['400', '500'], subsets: ['latin'], varia
 const rajdhani = Rajdhani({ weight: ['600', '700'], subsets: ['latin'], variable: '--font-rajdhani', preload: false });
 const chakra = Chakra_Petch({ weight: ['400', '500', '600'], subsets: ['latin'], variable: '--font-chakra', preload: false });
 
-const fonts = [pressStart, vt323, bigShoulders, barlow, dafoe, cinzel, garamond, rajdhani, chakra].map((f) => f.variable).join(' ');
+const fonts = [pressStart, vt323, oswald, outfit, cinzel, garamond, rajdhani, chakra].map((f) => f.variable).join(' ');
 
 export const metadata: Metadata = {
   title: 'Morreu, Passou',

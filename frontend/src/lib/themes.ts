@@ -28,10 +28,10 @@ export const THEMES: Theme[] = [
   {
     id: 'vice',
     name: 'Vice',
-    vibe: 'pôr do sol na Flórida, estilo GTA 6',
+    vibe: 'noite em Leonida, estilo GTA 6',
     deathText: 'JÁ ERA',
-    swatch: ['#2a0f3d', '#ff3d8b', '#ffb347'],
-    themeColor: '#2a0f3d',
+    swatch: ['#0c0d1b', '#ffb2c6', '#fff9cb'],
+    themeColor: '#0c0d1b',
     icons: 'line',
   },
   {
